@@ -18,7 +18,7 @@ dotenv.config(); // 加载环境变量
 const router = Router();
 
 router.use("/user", userRoutes); // 注册用户路由
-router.use("/artical", articleRoutes); // 注册文章路由
+router.use("/article", articleRoutes); // 注册文章路由
 
 // 以下路由需要登录后才能访问  使用 authMiddleware 中间件 (验证 token) 全局鉴权
 router.use(authMiddleware);
