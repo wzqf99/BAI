@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-06 10:59:52
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-07 14:03:15
+ * @LastEditTime: 2025-02-13 15:36:59
  * @FilePath: \AI_node\src\routes\router.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -21,7 +21,7 @@ router.use("/user", userRoutes); // 注册用户路由
 router.use("/article", articleRoutes); // 注册文章路由
 
 // 以下路由需要登录后才能访问  使用 authMiddleware 中间件 (验证 token) 全局鉴权
-router.use(authMiddleware);
+/* router.use(authMiddleware); */
 // 其他路由可在此添加，例如：
 
 export default router;

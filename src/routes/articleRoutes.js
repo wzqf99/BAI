@@ -1,3 +1,11 @@
+/*
+ * @Author: yelan wzqf99@foxmail.com
+ * @Date: 2025-02-07 14:13:46
+ * @LastEditors: yelan wzqf99@foxmail.com
+ * @LastEditTime: 2025-02-13 15:53:09
+ * @FilePath: \AI_node\src\routes\articleRoutes.js
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import { Router } from "express";
 import articleController from "../controllers/articleController.js";
 
@@ -11,8 +19,15 @@ router.get("/generateArticleDraft", articleController.generateDraft);
 // 保存文章 已完成
 router.post("/createArticle", articleController.createArticle);
 
-// 获取文章列表 未完成
-router.get("/article", articleController.getArticles);
+// 获取文章列表
+router.get(
+  "/articleList",
+  (req, res, next) => {
+    console.log("articleList route reached"); // 测试路由是否可达
+    next();
+  },
+  articleController.getArticles
+);
 
 // 获取某篇文章的详细信息 未完成
 router.get("/article/:id", articleController.getArticleById);

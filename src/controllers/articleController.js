@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-12 13:22:41
+ * @LastEditTime: 2025-02-13 16:08:09
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -11,7 +11,7 @@ import ArticleTypeModel from "../models/ArticleTypeModel.js";
 import LanguageStyleModel from "../models/LanguageStyleModel.js";
 import ContentTemplateModel from "../models/ContentTemplateModel.js";
 const articleController = {
-  // 生成文章草稿
+  // 生成文章草稿 get 已完成
   async generateDraft(req, res) {
     try {
       // 用 GET /generateArticleDraft?articleType=xx&languageStyle=xx...
@@ -57,16 +57,69 @@ const articleController = {
     }
   },
 
-  // 获取文章列表 get
+  // 获取文章列表 get 已完成
   async getArticles(req, res) {
+    console.log("接收到了获取文章列表请求", req.query);
+    const {
+      user_id,
+      page = 1,
+      pageSize = 10,
+      title,
+      article_type,
+      status,
+      start_date,
+      end_date,
+    } = req.query;
+    // 参数验证
+    if (!user_id) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: "Missing user_id parameter",
+      });
+    }
+
+    if (isNaN(page) || page < 1) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: "Invalid page number",
+      });
+    }
+
+    if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: "Invalid page size (1-100)",
+      });
+    }
+
     try {
-      const articles = await articleModel.getArticles();
-      res.json(articles);
+      const articles = await articleModel.getArticles({
+        user_id: parseInt(user_id),
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        search: {
+          title,
+          article_type,
+          status,
+          start_date,
+          end_date,
+        },
+      });
+      res.status(200).json({
+        statusCode: 200,
+        message: "获取文章列表成功",
+        data: articles.data,
+        pagination: articles.pagination,
+      });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error("Database error:", error); // 输出详细错误信息
+      res.status(500).json({
+        message: "Internal server error",
+        error: error.message, // 返回错误信息以帮助排查
+      });
     }
   },
-  // 创建(保存)文章 post
+  // 创建(保存)文章 post 已完成
   async createArticle(req, res) {
     // 检查请求体中是否包含必要的字段
     const requiredFields = [
