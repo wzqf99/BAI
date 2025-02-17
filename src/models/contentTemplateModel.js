@@ -28,5 +28,12 @@ const ContentTemplateModel = {
     const [result] = await pool.query(sql, [userInput]);
     return result.insertId; // 返回新创建的模板 ID
   },
+
+  // 更新内容模板
+  async updateUserInputToTemplate(id, userInput) {
+    const sql = "update content_templates set content = ? where id = ?";
+    const [result] = await pool.query(sql, [userInput, id]);
+    return result.affectedRows > 0; // 返回是否更新成功
+  },
 };
 export default ContentTemplateModel;

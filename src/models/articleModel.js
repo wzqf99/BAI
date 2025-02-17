@@ -2,12 +2,13 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-13 16:14:33
+ * @LastEditTime: 2025-02-17 11:55:35
  * @FilePath: \AI_node\src\models\articleModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import pool from "../config/db.js";
 import OpenAIService from "../services/openAIServices.js";
+import ContentTemplateModel from "./ContentTemplateModel.js";
 const articleModel = {
   // 调用大模型生成文章草稿 已完成
   async generateDraft({
@@ -165,23 +166,99 @@ const articleModel = {
       return;
     }
   },
-  // 获取某篇文章的详细信息
+  // 获取某篇文章的详细信息 已完成
   async getArticleById(id) {
-    const sql = "SELECT * FROM article WHERE id = ?";
-    const [result] = await pool.execute(sql, [id]);
-    return result;
+    console.log(`操作id为${id}文章`);
+    const sql = `
+    select 
+    a.*,
+    at.name as article_type,
+    ls.name as language_style,
+    ct.content as content_template
+    from articles a
+    left join article_types at on a.article_type_id = at.id
+    left join language_styles ls on a.language_style_id = ls.id
+    left join content_templates ct on a.content_template_id = ct.id
+    where a.id = ?
+    `;
+
+    try {
+      const [result] = await pool.query(sql, [id]);
+      const row = result[0];
+      return {
+        id: row.id,
+        userId: row.user_id,
+        topicdId: row.topic_id,
+        title: row.title,
+        content: row.content,
+        wordCount: row.word_count,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        languageStyle: {
+          id: row.language_style_id,
+          name: row.language_style,
+        },
+        articleType: {
+          id: row.article_type_id,
+          name: row.article_type,
+        },
+        contentTemplate: {
+          id: row.content_template_id,
+          content: row.content_template,
+        },
+      };
+    } catch (error) {
+      console.error("Database error:", error);
+      throw new Error("Error fetching article");
+    }
   },
-  // 更新整篇文章
+  // 更新整篇文章 已完成
   async updateArticle(id, article) {
-    const { title, content } = article;
-    const sql = "UPDATE article SET title = ?, content = ? WHERE id = ?";
-    const [result] = await pool.execute(sql, [title, content, id]);
+    const {
+      title,
+      content,
+      article_type_id,
+      language_style_id,
+      content_template,
+      word_count,
+    } = article;
+
+    // 当前文章绑定的更新内容模板
+    const { contentId, contentName } = content_template;
+    const insertId = await ContentTemplateModel.updateUserInputToTemplate(
+      parseInt(contentId),
+      contentName
+    );
+    if (insertId) {
+      console.log("更新内容模板成功");
+    }
+
+    const sql = `UPDATE articles SET
+    title = ?,
+    content = ?,
+    article_type_id = ?,
+    language_style_id = ?,
+    content_template_id = ?,
+    word_count = ?
+    WHERE id = ?`;
+    const values = [
+      title,
+      content,
+      parseInt(article_type_id),
+      parseInt(language_style_id),
+      parseInt(contentId),
+      parseInt(word_count),
+      parseInt(id),
+    ];
+    const [result] = await pool.query(sql, values);
     return result;
   },
-  // 删除文章
+  // 删除文章 已完成
   async deleteArticle(id) {
-    const sql = "DELETE FROM article WHERE id = ?";
-    const [result] = await pool.execute(sql, [id]);
+    const sql = "DELETE FROM articles WHERE id = ?";
+    const values = [parseInt(id)];
+    const [result] = await pool.query(sql, values);
     return result;
   },
   // 局部更新文章

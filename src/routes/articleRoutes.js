@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-13 15:53:09
+ * @LastEditTime: 2025-02-14 16:55:15
  * @FilePath: \AI_node\src\routes\articleRoutes.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -20,26 +20,23 @@ router.get("/generateArticleDraft", articleController.generateDraft);
 router.post("/createArticle", articleController.createArticle);
 
 // 获取文章列表
-router.get(
-  "/articleList",
-  (req, res, next) => {
+router.get("/articleList", articleController.getArticles);
+/*  (req, res, next) => {
     console.log("articleList route reached"); // 测试路由是否可达
     next();
-  },
-  articleController.getArticles
-);
+  }, */
 
 // 获取某篇文章的详细信息 未完成
-router.get("/article/:id", articleController.getArticleById);
+router.get("/:id", articleController.getArticleById);
 
 // 更新整篇文章 未完成
-router.put("/article/:id", articleController.updateArticle);
+router.put("/:id", articleController.updateArticle);
 
 // 删除文章 未完成
-router.delete("/article/:id", articleController.deleteArticle);
+router.delete("/:id", articleController.deleteArticle);
 
 // 更新局部文章 未完成
-router.patch("/article/:id", articleController.patchArticle);
+router.patch("/:id", articleController.patchArticle);
 
 // 导出路由
 export default router;

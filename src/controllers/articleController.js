@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-13 16:08:09
+ * @LastEditTime: 2025-02-17 12:24:27
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -11,7 +11,7 @@ import ArticleTypeModel from "../models/ArticleTypeModel.js";
 import LanguageStyleModel from "../models/LanguageStyleModel.js";
 import ContentTemplateModel from "../models/ContentTemplateModel.js";
 const articleController = {
-  // 生成文章草稿 get 已完成
+  // 生成文章草稿 get 已完成 参数为文章类型，语言风格，内容模版，文字字数
   async generateDraft(req, res) {
     try {
       // 用 GET /generateArticleDraft?articleType=xx&languageStyle=xx...
@@ -57,7 +57,7 @@ const articleController = {
     }
   },
 
-  // 获取文章列表 get 已完成
+  // 获取文章列表 get 已完成 参数为用户id,页码,每页数量,文章标题,文章类型,状态,开始日期,结束日期
   async getArticles(req, res) {
     console.log("接收到了获取文章列表请求", req.query);
     const {
@@ -119,7 +119,8 @@ const articleController = {
       });
     }
   },
-  // 创建(保存)文章 post 已完成
+
+  // 创建(保存)文章 post 已完成 参数为文章对象
   async createArticle(req, res) {
     // 检查请求体中是否包含必要的字段
     const requiredFields = [
@@ -200,12 +201,73 @@ const articleController = {
       res.status(500).json({ message: error.message });
     }
   },
-  // 获取某篇文章的详细信息 get
-  async getArticleById(req, res) {},
-  // 更新文章信息 put
-  async updateArticle(req, res) {},
-  // 删除文章 delete
-  async deleteArticle(req, res) {},
+
+  // 获取某篇文章的详细信息 get 已完成 参数为文章id
+  async getArticleById(req, res) {
+    console.log("接收到了获取某篇文章的请求", req.params);
+    let { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "缺少必要参数: articleId" });
+    }
+    try {
+      const article = await articleModel.getArticleById(parseInt(id));
+      return res.status(200).json({ data: article, message: "获取文章成功" });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: "服务器错误", details: error.message });
+    }
+  },
+
+  // 更新文章信息 put 已完成 参数为文章对象和文章id
+  async updateArticle(req, res) {
+    const { id } = req.params;
+    const updateData = req.body;
+    if (!id) {
+      return res.status(400).json({ error: "缺少必要参数: articleId" });
+    }
+    if (!updateData) {
+      return res.status(400).json({ error: "缺少更新数据 updateData" });
+    }
+    try {
+      const { affectedRows, changedRows } = await articleModel.updateArticle(
+        id,
+        updateData
+      );
+
+      if (affectedRows === 0) {
+        return res.status(404).json({ error: "文章不存在或更新失败" });
+      }
+
+      if (changedRows === 0) {
+        return res.status(200).json({ message: "更新成功，但内容未更改" });
+      }
+
+      return res.status(200).json({ message: "更新文章成功" });
+    } catch (error) {
+      console.error("文章更新失败:", error);
+      return res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
+  // 删除文章 delete 已完成 参数为文章id
+  async deleteArticle(req, res) {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "缺少必要参数: articleId" });
+    }
+    try {
+      const { affectedRows } = await articleModel.deleteArticle(id);
+      if (affectedRows === 0) {
+        return res.status(404).json({ error: "文章不存在或删除失败" });
+      }
+      return res.status(200).json({ message: "删除文章成功" });
+    } catch (error) {
+      console.error("文章删除失败:", error);
+      return res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
   // 局部重写文章 patch
   async patchArticle(req, res) {},
 };
