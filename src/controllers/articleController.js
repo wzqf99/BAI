@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-17 12:24:27
+ * @LastEditTime: 2025-02-17 19:28:34
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -32,7 +32,6 @@ const articleController = {
         articleType,
         languageStyle,
         contentTemplate,
-        max_token,
       });
 
       // 设置SSE头
@@ -57,7 +56,7 @@ const articleController = {
     }
   },
 
-  // 获取文章列表 get 已完成 参数为用户id,页码,每页数量,文章标题,文章类型,状态,开始日期,结束日期
+  // 获取文章列表 get 已完成 必选用户id,页码,每页数量 (可选)参数为用户id,页码,每页数量,文章标题,文章类型,状态,开始日期,结束日期
   async getArticles(req, res) {
     console.log("接收到了获取文章列表请求", req.query);
     const {
@@ -219,7 +218,7 @@ const articleController = {
     }
   },
 
-  // 更新文章信息 put 已完成 参数为文章对象和文章id
+  // 更新文章信息 put 已完成 参数为文章对象()和文章id
   async updateArticle(req, res) {
     const { id } = req.params;
     const updateData = req.body;
@@ -268,7 +267,37 @@ const articleController = {
     }
   },
 
-  // 局部重写文章 patch
-  async patchArticle(req, res) {},
+  // 局部更新文章(四种方式:精简,润色,续写,扩写) get 已完成 参数为action, text, style
+  // action: shorten, polish, continue, expand  text小块内容,style
+  /* http://localhost:3000/api/article/rewriteText?action=shorten&style=正式&text=饺子给
+  // 申公豹赋予了血肉，塑造了一个有血有肉的反派，使得观众逐渐对他产生好感。转而，剧
+  // 中的其他反派角色则成了“最令人讨厌”的存在，他们所做的事，越来越出乎意料。 */
+  async reWriteArticle(req, res) {
+    const { action, text, style } = req.query;
+    if (!action || !text || !style) {
+      return res
+        .status(400)
+        .json({ error: "缺少必要参数: action, text, style" });
+    }
+    try {
+      const textStream = await articleModel.rewriteArticle(action, text, style);
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      for await (const chunk of textStream) {
+        const textChunk = chunk.choices?.[0]?.delta?.content ?? "";
+        // SSE格式: data: <内容>\n\n
+        res.write(`data: ${textChunk}\n\n`);
+      }
+
+      // 发送结束标志
+      res.write("data: \n\n");
+      res.end();
+    } catch (error) {
+      console.error("生成草稿出错:", error);
+      res.write("data: [ERROR]\n\n");
+      res.end();
+    }
+  },
 };
 export default articleController;

@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-17 11:55:35
+ * @LastEditTime: 2025-02-17 18:21:32
  * @FilePath: \AI_node\src\models\articleModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -19,7 +19,7 @@ const articleModel = {
   }) {
     // 如果业务需要验证 articleType / template 的正确性，可在此查询DB
     // 否则可直接使用参数组装 prompt
-    const systemPrompt = `你是一位专业的写作助手。请按照以下要求生成文章。`;
+    const systemPrompt = `你是一位专业的写作助手。请按照以下要求生成文章。生成的字数:${max_token}`;
     const userPrompt = `
       文章类型:“${articleType}”，
       语言风格:“${languageStyle}”，
@@ -134,6 +134,7 @@ const articleModel = {
       throw new Error("Error fetching articles");
     }
   },
+
   // 创建文章 已完成
   async createArticle(articleData) {
     const sql = `INSERT INTO articles (
@@ -166,6 +167,7 @@ const articleModel = {
       return;
     }
   },
+
   // 获取某篇文章的详细信息 已完成
   async getArticleById(id) {
     console.log(`操作id为${id}文章`);
@@ -254,6 +256,7 @@ const articleModel = {
     const [result] = await pool.query(sql, values);
     return result;
   },
+
   // 删除文章 已完成
   async deleteArticle(id) {
     const sql = "DELETE FROM articles WHERE id = ?";
@@ -261,12 +264,22 @@ const articleModel = {
     const [result] = await pool.query(sql, values);
     return result;
   },
-  // 局部更新文章
-  async patchArticle(id, article) {
-    const { title, content } = article;
-    const sql = "UPDATE article SET title = ?, content = ? WHERE id = ?";
-    const [result] = await pool.execute(sql, [title, content, id]);
-    return result;
+
+  // 局部更新文章(四种方式:精简,润色,续写,扩写)
+  async rewriteArticle(action, text, style) {
+    let responseStream;
+    if (action === "shorten") {
+      responseStream = OpenAIService.shortenText(text, style);
+    } else if (action === "polish") {
+      responseStream = OpenAIService.polishText(text, style);
+    } else if (action === "continue") {
+      responseStream = OpenAIService.continueText(text, style);
+    } else if (action === "expand") {
+      responseStream = OpenAIService.expandText(text, style);
+    } else {
+      throw new Error("Invalid action");
+    }
+    return responseStream;
   },
 };
 export default articleModel;

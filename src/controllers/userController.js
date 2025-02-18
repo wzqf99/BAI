@@ -17,7 +17,7 @@ const userController = {
    * @param {Object} res - 响应对象
    * @returns {Object} - 返回注册结果或错误信息
    */
-  // 注册
+  // 注册 { username, email, password }
   async register(req, res) {
     try {
       console.log("收到注册请求", req.body);
@@ -59,7 +59,7 @@ const userController = {
    * @param {Object} res - 响应对象
    * @returns {Object} - 返回登录结果或错误信息
    */
-  // 登录
+  // 登录 {usernameOrEmail:string, password:string}
   async login(req, res) {
     try {
       const { usernameOrEmail, password } = req.body;
@@ -116,7 +116,7 @@ const userController = {
     }
   },
 
-  // 退出登录 需要前端传入 token
+  // 退出登录 需要前端传入(请求头携带) token
   async logout(req, res) {
     try {
       const authHeader = req.headers.authorization;

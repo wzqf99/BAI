@@ -19,24 +19,24 @@ router.get("/generateArticleDraft", articleController.generateDraft);
 // 保存文章 已完成
 router.post("/createArticle", articleController.createArticle);
 
-// 获取文章列表
+// 局部更新文章(四种方式:精简,润色,续写,扩写) 已完成
+router.get("/rewriteText", articleController.reWriteArticle);
+
+// 获取文章列表 已完成
 router.get("/articleList", articleController.getArticles);
 /*  (req, res, next) => {
     console.log("articleList route reached"); // 测试路由是否可达
     next();
   }, */
 
-// 获取某篇文章的详细信息 未完成
+// 获取某篇文章的详细信息 已完成
 router.get("/:id", articleController.getArticleById);
 
-// 更新整篇文章 未完成
+// 更新整篇文章 已完成
 router.put("/:id", articleController.updateArticle);
 
-// 删除文章 未完成
+// 删除文章 已完成
 router.delete("/:id", articleController.deleteArticle);
-
-// 更新局部文章 未完成
-router.patch("/:id", articleController.patchArticle);
 
 // 导出路由
 export default router;
