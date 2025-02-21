@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-17 18:21:32
+ * @LastEditTime: 2025-02-21 14:49:32
  * @FilePath: \AI_node\src\models\articleModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -10,6 +10,19 @@ import pool from "../config/db.js";
 import OpenAIService from "../services/openAIServices.js";
 import ContentTemplateModel from "./ContentTemplateModel.js";
 const articleModel = {
+  // 获取文章类型 已完成
+  async getArticleTypes() {
+    const sql = "SELECT * FROM article_types";
+    const [rows] = await pool.query(sql);
+    return rows;
+  },
+
+  // 获取文章语言风格 已完成
+  async getLanguageStyles() {
+    const sql = "SELECT * FROM language_styles";
+    const [rows] = await pool.query(sql);
+    return rows;
+  },
   // 调用大模型生成文章草稿 已完成
   async generateDraft({
     articleType,
@@ -45,7 +58,7 @@ const articleModel = {
   },
 
   // 获取文章列表 已完成
-  async getArticles({ user_id, page = 1, pageSize = 10, search }) {
+  async getArticles({ user_id, page = 1, pageSize = 8, search }) {
     // a.* 代表articles表的所有字段
     console.log("接收到参数", user_id, page, pageSize, search);
     let baseQuery = `

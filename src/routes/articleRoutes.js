@@ -11,6 +11,10 @@ import articleController from "../controllers/articleController.js";
 
 const router = Router();
 
+// 获取文章类型和语言风格
+router.get("/types", articleController.getArticleTypes);
+router.get("/styles", articleController.getLanguageStyles);
+
 // 前端向这里发请求,以query方式传入文章类型，语言风格，内容模版，文字字数，
 // 如果文章类型，语言风格，内容模版是通过话题传入的。
 // 生成文章草稿(调用大模型输入参数生成content,返回content到前端) 已完成

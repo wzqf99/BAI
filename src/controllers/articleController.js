@@ -11,6 +11,28 @@ import ArticleTypeModel from "../models/ArticleTypeModel.js";
 import LanguageStyleModel from "../models/LanguageStyleModel.js";
 import ContentTemplateModel from "../models/ContentTemplateModel.js";
 const articleController = {
+  // 获取文章类型 get 已完成
+  async getArticleTypes(req, res) {
+    try {
+      const articleTypes = await articleModel.getArticleTypes();
+      res.status(200).json({ data: articleTypes });
+    } catch (error) {
+      console.error("获取文章类型失败:", error);
+      res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
+  // 获取文章语言风格 get 已完成
+  async getLanguageStyles(req, res) {
+    try {
+      const languageStyles = await articleModel.getLanguageStyles();
+      res.status(200).json({ data: languageStyles });
+    } catch (error) {
+      console.error("获取文章语言风格失败:", error);
+      res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
   // 生成文章草稿 get 已完成 参数为文章类型，语言风格，内容模版，文字字数
   async generateDraft(req, res) {
     try {
@@ -60,9 +82,9 @@ const articleController = {
   async getArticles(req, res) {
     console.log("接收到了获取文章列表请求", req.query);
     const {
-      user_id,
-      page = 1,
-      pageSize = 10,
+      user_id, // 必选
+      page = 1, // 必选
+      pageSize = 8, // 必选
       title,
       article_type,
       status,
