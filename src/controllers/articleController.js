@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-17 19:28:34
+ * @LastEditTime: 2025-02-24 22:34:07
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14,6 +14,7 @@ const articleController = {
   // 获取文章类型 get 已完成
   async getArticleTypes(req, res) {
     try {
+      console.log("有请求到达", "ip为", req.ip);
       const articleTypes = await articleModel.getArticleTypes();
       res.status(200).json({ data: articleTypes });
     } catch (error) {
@@ -144,6 +145,7 @@ const articleController = {
   // 创建(保存)文章 post 已完成 参数为文章对象
   async createArticle(req, res) {
     // 检查请求体中是否包含必要的字段
+    console.log("接收到了请求");
     const requiredFields = [
       "user_id",
       "article_type_id",
@@ -173,7 +175,7 @@ const articleController = {
     console.log("接收到了创建文章请求", req.body);
 
     // 保存用户输入的内容模板  同时获取相应的id  用于后续创建文章(保存文章到数据库)
-    let styleId = await ContentTemplateModel.saveUserInputToTemplate(
+    let templateId = await ContentTemplateModel.saveUserInputToTemplate(
       content_template
     );
 
@@ -182,7 +184,7 @@ const articleController = {
       const [articleType, languageStyle, contentTemplate] = await Promise.all([
         ArticleTypeModel.getById(article_type_id),
         LanguageStyleModel.getById(language_style_id),
-        ContentTemplateModel.getById(styleId),
+        ContentTemplateModel.getById(templateId),
       ]);
       if (!articleType)
         return res.status(400).json({ error: "Invalid article_type_id" });
@@ -202,16 +204,16 @@ const articleController = {
         topic_id: topic_id || null,
         article_type_id,
         language_style_id,
-        content_template_id: styleId,
+        content_template_id: templateId,
         title: title || "",
-        content,
+        content: content || "",
         word_count: parseInt(word_count) || 0,
         status: status || "draft",
       };
 
       const articleId = await articleModel.createArticle(articleData);
       return res.status(201).json({
-        id: articleId,
+        success: true,
         message: "文章创建成功",
         data: {
           ...articleData,

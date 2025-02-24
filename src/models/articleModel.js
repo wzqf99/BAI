@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-21 14:49:32
+ * @LastEditTime: 2025-02-24 21:52:39
  * @FilePath: \AI_node\src\models\articleModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -23,6 +23,7 @@ const articleModel = {
     const [rows] = await pool.query(sql);
     return rows;
   },
+  
   // 调用大模型生成文章草稿 已完成
   async generateDraft({
     articleType,
@@ -37,8 +38,10 @@ const articleModel = {
       文章类型:“${articleType}”，
       语言风格:“${languageStyle}”，
       生成的内容:"${contentTemplate}"。
-      在文章标题的前后加上<h1>和</h1>标签。
-      每个段落的前后加上<p>和</p>标签。
+      为了让你输入的内容可以直接作为html渲染,
+      在文章标题的前面加上<h1>,文章标题的后面加上</h1>
+      在每个段落的前面加上<p>,在每个段落的后面加上</p>
+      。
     `;
 
     const messages = [
@@ -148,7 +151,7 @@ const articleModel = {
     }
   },
 
-  // 创建文章 已完成
+  // 创建文章(保存文章) 已完成
   async createArticle(articleData) {
     const sql = `INSERT INTO articles (
       user_id, 

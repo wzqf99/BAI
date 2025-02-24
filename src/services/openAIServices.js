@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-06 11:20:40
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-17 19:23:25
+ * @LastEditTime: 2025-02-24 17:03:17
  * @FilePath: \AI_node\src\services\openAIServices.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -27,7 +27,7 @@ class OpenAIService {
    * @param {number} maxTokens - 返回的最大 token 数
    * @returns {AsyncGenerator} - 可异步迭代获取 chunk
    */
-  async getChatCompletion(messages, model = "qwen-turbo") {
+  async getChatCompletion(messages, model = "qwen-plus") {
     return this.openai.chat.completions.create({
       model,
       messages,
