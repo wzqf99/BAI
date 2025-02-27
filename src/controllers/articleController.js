@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-24 22:34:07
+ * @LastEditTime: 2025-02-26 23:48:27
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -11,29 +11,6 @@ import ArticleTypeModel from "../models/ArticleTypeModel.js";
 import LanguageStyleModel from "../models/LanguageStyleModel.js";
 import ContentTemplateModel from "../models/ContentTemplateModel.js";
 const articleController = {
-  // 获取文章类型 get 已完成
-  async getArticleTypes(req, res) {
-    try {
-      console.log("有请求到达", "ip为", req.ip);
-      const articleTypes = await articleModel.getArticleTypes();
-      res.status(200).json({ data: articleTypes });
-    } catch (error) {
-      console.error("获取文章类型失败:", error);
-      res.status(500).json({ error: "服务器错误" });
-    }
-  },
-
-  // 获取文章语言风格 get 已完成
-  async getLanguageStyles(req, res) {
-    try {
-      const languageStyles = await articleModel.getLanguageStyles();
-      res.status(200).json({ data: languageStyles });
-    } catch (error) {
-      console.error("获取文章语言风格失败:", error);
-      res.status(500).json({ error: "服务器错误" });
-    }
-  },
-
   // 生成文章草稿 get 已完成 参数为文章类型，语言风格，内容模版，文字字数
   async generateDraft(req, res) {
     try {
@@ -55,6 +32,7 @@ const articleController = {
         articleType,
         languageStyle,
         contentTemplate,
+        max_token,
       });
 
       // 设置SSE头
@@ -64,6 +42,39 @@ const articleController = {
 
       // 逐段读取流，发送给前端
       for await (const chunk of articleStream) {
+        const textChunk = chunk.choices?.[0]?.delta?.content ?? "";
+        // SSE格式: data: <内容>\n\n
+        res.write(`data: ${textChunk}\n\n`);
+      }
+
+      // 发送结束标志
+      res.write("data: \n\n");
+      res.end();
+    } catch (error) {
+      console.error("生成草稿出错:", error);
+      res.write("data: [ERROR]\n\n");
+      res.end();
+    }
+  },
+
+  // 局部更新文章(四种方式:精简,润色,续写,扩写) get 已完成 参数为action, text, style
+  // action: shorten, polish, continue, expand  text小块内容,style
+  /* http://localhost:3000/api/article/rewriteText?action=shorten&style=正式&text=饺子给
+  // 申公豹赋予了血肉，塑造了一个有血有肉的反派，使得观众逐渐对他产生好感。转而，剧
+  // 中的其他反派角色则成了“最令人讨厌”的存在，他们所做的事，越来越出乎意料。 */
+  async reWriteArticle(req, res) {
+    const { action, text, style } = req.query;
+    if (!action || !text || !style) {
+      return res
+        .status(400)
+        .json({ error: "缺少必要参数: action, text, style" });
+    }
+    try {
+      const textStream = await articleModel.rewriteArticle(action, text, style);
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      for await (const chunk of textStream) {
         const textChunk = chunk.choices?.[0]?.delta?.content ?? "";
         // SSE格式: data: <内容>\n\n
         res.write(`data: ${textChunk}\n\n`);
@@ -200,7 +211,7 @@ const articleController = {
       } */
 
       const articleData = {
-        user_id,
+        user_id: user_id,
         topic_id: topic_id || null,
         article_type_id,
         language_style_id,
@@ -212,6 +223,7 @@ const articleController = {
       };
 
       const articleId = await articleModel.createArticle(articleData);
+      console.log({ ...articleData, id: articleId });
       return res.status(201).json({
         success: true,
         message: "文章创建成功",
@@ -291,36 +303,26 @@ const articleController = {
     }
   },
 
-  // 局部更新文章(四种方式:精简,润色,续写,扩写) get 已完成 参数为action, text, style
-  // action: shorten, polish, continue, expand  text小块内容,style
-  /* http://localhost:3000/api/article/rewriteText?action=shorten&style=正式&text=饺子给
-  // 申公豹赋予了血肉，塑造了一个有血有肉的反派，使得观众逐渐对他产生好感。转而，剧
-  // 中的其他反派角色则成了“最令人讨厌”的存在，他们所做的事，越来越出乎意料。 */
-  async reWriteArticle(req, res) {
-    const { action, text, style } = req.query;
-    if (!action || !text || !style) {
-      return res
-        .status(400)
-        .json({ error: "缺少必要参数: action, text, style" });
-    }
+  // 获取文章类型 get 已完成
+  async getArticleTypes(req, res) {
     try {
-      const textStream = await articleModel.rewriteArticle(action, text, style);
-      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-      for await (const chunk of textStream) {
-        const textChunk = chunk.choices?.[0]?.delta?.content ?? "";
-        // SSE格式: data: <内容>\n\n
-        res.write(`data: ${textChunk}\n\n`);
-      }
-
-      // 发送结束标志
-      res.write("data: \n\n");
-      res.end();
+      console.log("有请求到达", "ip为", req.ip);
+      const articleTypes = await articleModel.getArticleTypes();
+      res.status(200).json({ data: articleTypes });
     } catch (error) {
-      console.error("生成草稿出错:", error);
-      res.write("data: [ERROR]\n\n");
-      res.end();
+      console.error("获取文章类型失败:", error);
+      res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
+  // 获取文章语言风格 get 已完成
+  async getLanguageStyles(req, res) {
+    try {
+      const languageStyles = await articleModel.getLanguageStyles();
+      res.status(200).json({ data: languageStyles });
+    } catch (error) {
+      console.error("获取文章语言风格失败:", error);
+      res.status(500).json({ error: "服务器错误" });
     }
   },
 };

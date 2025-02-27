@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-24 21:52:39
+ * @LastEditTime: 2025-02-27 14:01:43
  * @FilePath: \AI_node\src\models\articleModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -10,20 +10,6 @@ import pool from "../config/db.js";
 import OpenAIService from "../services/openAIServices.js";
 import ContentTemplateModel from "./ContentTemplateModel.js";
 const articleModel = {
-  // 获取文章类型 已完成
-  async getArticleTypes() {
-    const sql = "SELECT * FROM article_types";
-    const [rows] = await pool.query(sql);
-    return rows;
-  },
-
-  // 获取文章语言风格 已完成
-  async getLanguageStyles() {
-    const sql = "SELECT * FROM language_styles";
-    const [rows] = await pool.query(sql);
-    return rows;
-  },
-  
   // 调用大模型生成文章草稿 已完成
   async generateDraft({
     articleType,
@@ -33,15 +19,16 @@ const articleModel = {
   }) {
     // 如果业务需要验证 articleType / template 的正确性，可在此查询DB
     // 否则可直接使用参数组装 prompt
-    const systemPrompt = `你是一位专业的写作助手。请按照以下要求生成文章。生成的字数:${max_token}`;
+    const systemPrompt = `你是一位专业的写作助手。请按照以下要求生成文章。
+      为了让你输入的内容可以直接作为html渲染,
+      输出的格式:
+      在文章标题的第一个字前加上<h1>,文章标题的最后一个字后加上</h1>
+      在生成的每个段落的第一个字最前加上<p>,在每个段落的最后一个字的后面加上</p>`;
     const userPrompt = `
+      生成的字数:${max_token}
       文章类型:“${articleType}”，
       语言风格:“${languageStyle}”，
-      生成的内容:"${contentTemplate}"。
-      为了让你输入的内容可以直接作为html渲染,
-      在文章标题的前面加上<h1>,文章标题的后面加上</h1>
-      在每个段落的前面加上<p>,在每个段落的后面加上</p>
-      。
+      生成的内容:"${contentTemplate}"。。
     `;
 
     const messages = [
@@ -52,11 +39,27 @@ const articleModel = {
     // 调用已封装的 openAIService，使用流式返回
     const responseStream = await OpenAIService.getChatCompletion(
       messages,
-      "qwen-turbo", // 模型名称可自行替换
-      max_token // maxTokens
+      "deepseek-v3" // 模型可自行替换
     );
 
     // 返回流
+    return responseStream;
+  },
+
+  // 局部更新文章(四种方式:精简,润色,续写,扩写)
+  async rewriteArticle(action, text, style) {
+    let responseStream;
+    if (action === "shorten") {
+      responseStream = await OpenAIService.shortenText(text, style);
+    } else if (action === "polish") {
+      responseStream = await OpenAIService.polishText(text, style);
+    } else if (action === "continue") {
+      responseStream = await OpenAIService.continueText(text, style);
+    } else if (action === "expand") {
+      responseStream = await OpenAIService.expandText(text, style);
+    } else {
+      throw new Error("Invalid action");
+    }
     return responseStream;
   },
 
@@ -154,16 +157,16 @@ const articleModel = {
   // 创建文章(保存文章) 已完成
   async createArticle(articleData) {
     const sql = `INSERT INTO articles (
-      user_id, 
-      topic_id, 
-      article_type_id, 
-      language_style_id, 
-      content_template_id, 
-      title, 
-      content, 
-      word_count, 
-      status
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        user_id, 
+        topic_id, 
+        article_type_id, 
+        language_style_id, 
+        content_template_id, 
+        title, 
+        content, 
+        word_count, 
+        status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const values = [
       articleData.user_id,
       articleData.topic_id || null,
@@ -176,7 +179,7 @@ const articleModel = {
       articleData.status || "draft",
     ];
     try {
-      const result = await pool.query(sql, values);
+      const [result] = await pool.query(sql, values);
       return result.insertId;
     } catch (error) {
       console.log(error);
@@ -231,8 +234,11 @@ const articleModel = {
       throw new Error("Error fetching article");
     }
   },
+
   // 更新整篇文章 已完成
   async updateArticle(id, article) {
+    console.log("接收到更新请求");
+    console.log(id, article);
     const {
       title,
       content,
@@ -281,21 +287,18 @@ const articleModel = {
     return result;
   },
 
-  // 局部更新文章(四种方式:精简,润色,续写,扩写)
-  async rewriteArticle(action, text, style) {
-    let responseStream;
-    if (action === "shorten") {
-      responseStream = OpenAIService.shortenText(text, style);
-    } else if (action === "polish") {
-      responseStream = OpenAIService.polishText(text, style);
-    } else if (action === "continue") {
-      responseStream = OpenAIService.continueText(text, style);
-    } else if (action === "expand") {
-      responseStream = OpenAIService.expandText(text, style);
-    } else {
-      throw new Error("Invalid action");
-    }
-    return responseStream;
+  // 获取文章类型 已完成
+  async getArticleTypes() {
+    const sql = "SELECT * FROM article_types";
+    const [rows] = await pool.query(sql);
+    return rows;
+  },
+
+  // 获取文章语言风格 已完成
+  async getLanguageStyles() {
+    const sql = "SELECT * FROM language_styles";
+    const [rows] = await pool.query(sql);
+    return rows;
   },
 };
 export default articleModel;
