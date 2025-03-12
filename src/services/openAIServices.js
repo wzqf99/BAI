@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-06 11:20:40
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-26 15:12:32
+ * @LastEditTime: 2025-03-12 16:59:40
  * @FilePath: \AI_node\src\services\openAIServices.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -27,6 +27,7 @@ class OpenAIService {
    * @param {number} maxTokens - 返回的最大 token 数
    * @returns {AsyncGenerator} - 可异步迭代获取 chunk
    */
+
   async getChatCompletion(messages, model = "deepseek-v3") {
     return this.openai.chat.completions.create({
       model,
@@ -35,6 +36,7 @@ class OpenAIService {
       stream: true,
     });
   }
+
   /**
    * 获取流式返回的大模型响应
    * @param {string} text - 待润色的文本
@@ -99,6 +101,91 @@ class OpenAIService {
     ];
     text.length;
     return this.getChatCompletion(messages);
+  }
+
+  //  生成话题   qwen-max-0919 qwen-plus
+  async generateTopic(context, model = "qwen-max-0919") {
+    const prompt = `
+根据以下信息生成话题：
+
+标题: {title}
+
+描述: {desc} （如果有）
+
+输入: {input} （如果有）
+
+根据上述信息，生成1个包含以下内容的 JSON 对象：
+
+1. \`title\`: 生成的标题
+2. \`contemplate\`: 
+   - \`id\`: -1
+   - \`content\`: 生成的详细描述，拓展标题的内容，包含引导用户思路的信息
+3. \`style\`: 选择一个合适的风格，选择一个值：
+   - { "id": 1, "name": "正式" }
+   - { "id": 2, "name": "热情" }
+   - { "id": 3, "name": "简洁" }
+   - { "id": 4, "name": "礼貌" }
+   - { "id": 5, "name": "高情商" }
+   - { "id": 6, "name": "口语化" }
+4. \`type\`: 选择一个合适的文章类型，选择一个值：
+   - { "id": 1, "name": "新闻" }
+   - { "id": 2, "name": "博客" }
+   - { "id": 3, "name": "教程" }
+   - { "id": 4, "name": "知识科普" }
+   - { "id": 5, "name": "故事" }
+   - { "id": 6, "name": "活动宣传" }
+   - { "id": 7, "name": "总结报告" }
+   - { "id": 8, "name": "通用写作" }
+   - { "id": 9, "name": "演讲稿" }
+   - { "id": 10, "name": "经验分享" }
+   - { "id": 11, "name": "情感共鸣" }
+
+返回的格式应为 JSON，包含以下结构：
+
+\`\`\`json
+[
+  {
+    "title": "生成的标题",
+    "contemplate": {
+      "id": -1,
+      "content": "拓展描述内容"
+    },
+    "style": {
+      "id": 1,
+      "name": "正式"
+    },
+    "type": {
+      "id": 1,
+      "name": "新闻"
+    }
+  }
+  
+]
+\`\`\`
+    `;
+    const response = await this.openai.chat.completions.create({
+      model,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "system",
+          content: prompt,
+        },
+        { role: "user", content: context },
+      ],
+    });
+
+    // 处理返回的响应并提取话题
+    if (
+      response &&
+      response.choices &&
+      response.choices[0] &&
+      response.choices[0].message
+    ) {
+      return response.choices[0].message.content;
+    } else {
+      throw new Error("生成话题失败，未能获取有效的返回数据");
+    }
   }
 }
 
