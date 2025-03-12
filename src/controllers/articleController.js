@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-26 23:48:27
+ * @LastEditTime: 2025-03-02 10:11:29
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -92,7 +92,7 @@ const articleController = {
 
   // 获取文章列表 get 已完成 必选用户id,页码,每页数量 (可选)参数为用户id,页码,每页数量,文章标题,文章类型,状态,开始日期,结束日期
   async getArticles(req, res) {
-    console.log("接收到了获取文章列表请求", req.query);
+    console.log("接收到了获取文章列表请求,逻辑层", req.query);
     const {
       user_id, // 必选
       page = 1, // 必选
@@ -296,7 +296,7 @@ const articleController = {
       if (affectedRows === 0) {
         return res.status(404).json({ error: "文章不存在或删除失败" });
       }
-      return res.status(200).json({ message: "删除文章成功" });
+      return res.status(200).json({ message: "删除文章成功", articleId: id });
     } catch (error) {
       console.error("文章删除失败:", error);
       return res.status(500).json({ error: "服务器错误" });

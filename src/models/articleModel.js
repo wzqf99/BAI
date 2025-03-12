@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-02-27 14:01:43
+ * @LastEditTime: 2025-02-28 21:17:24
  * @FilePath: \AI_node\src\models\articleModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -64,9 +64,9 @@ const articleModel = {
   },
 
   // 获取文章列表 已完成
-  async getArticles({ user_id, page = 1, pageSize = 8, search }) {
+  async getArticles({ user_id, page, pageSize, search }) {
     // a.* 代表articles表的所有字段
-    console.log("接收到参数", user_id, page, pageSize, search);
+    console.log("接收到参数模型层", user_id, page, pageSize, search);
     let baseQuery = `
        select 
        a.id,
@@ -137,8 +137,8 @@ const articleModel = {
       return {
         data: articles.map((article) => ({
           ...article,
-          created_at: article.created_at, // 转换为ISO格式 .toISOString()
-          updated_at: article.updated_at, // 转换为ISO格式
+          created_at: article.created_at.toISOString(), // 转换为ISO格式 .toISOString()
+          updated_at: article.updated_at.toISOString(), 
         })),
         pagination: {
           page: Number(page),
