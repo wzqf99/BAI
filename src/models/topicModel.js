@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-03-13 19:08:20
+ * @LastEditTime: 2025-04-12 11:07:52
  * @FilePath: \AI_node\src\models\topicModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -78,6 +78,12 @@ const topicModel = {
     }
   },
 
+  // 检查是否收藏过了
+  async checkIfAlreadyCollected(topicId, userId) {
+    const sql = "SELECT * FROM user_favorites WHERE user_id = ? AND topic_id = ? LIMIT 1";
+    const [rows] = await pool.query(sql, [userId, topicId]);
+    return rows.length > 0;
+  },
   // 用户取消收藏某话题 已完成
   async cancelCollectTopic(userId, topicId) {
     console.log(`用户 ${userId} 取消收藏话题 ${topicId}`);
@@ -113,7 +119,6 @@ const topicModel = {
     LEFT JOIN language_styles s ON t.language_style_id = s.id
     LEFT JOIN article_types ty ON t.article_type_id = ty.id
     WHERE uf.user_id = ?;`;
-
     try {
       const [rows] = await pool.query(sql, [userId]);
 
@@ -137,10 +142,10 @@ const topicModel = {
     } catch (error) {
       console.error("获取用户收藏列表失败:", error);
       throw new Error("获取用户收藏列表失败");
-      ddddd;
     }
-    d;
   },
+
+  
 };
 
 export default topicModel;

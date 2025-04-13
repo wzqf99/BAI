@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-06 11:20:40
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-03-12 16:59:40
+ * @LastEditTime: 2025-03-30 19:18:59
  * @FilePath: \AI_node\src\services\openAIServices.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -117,7 +117,7 @@ class OpenAIService {
 根据上述信息，生成1个包含以下内容的 JSON 对象：
 
 1. \`title\`: 生成的标题
-2. \`contemplate\`: 
+2. \`contentmplate\`: 
    - \`id\`: -1
    - \`content\`: 生成的详细描述，拓展标题的内容，包含引导用户思路的信息
 3. \`style\`: 选择一个合适的风格，选择一个值：
@@ -146,7 +146,7 @@ class OpenAIService {
 [
   {
     "title": "生成的标题",
-    "contemplate": {
+    "content_template": {
       "id": -1,
       "content": "拓展描述内容"
     },
@@ -159,7 +159,6 @@ class OpenAIService {
       "name": "新闻"
     }
   }
-  
 ]
 \`\`\`
     `;

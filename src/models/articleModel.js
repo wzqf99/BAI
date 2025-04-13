@@ -21,6 +21,7 @@ const articleModel = {
     // 否则可直接使用参数组装 prompt
     const systemPrompt = `你是一位专业的写作助手。请按照以下要求生成文章。
       为了让你输入的内容可以直接作为html渲染,
+      生成标题 字数控制在三个字到十个字左右。
       输出的格式:
       在文章标题的第一个字前加上<h1>,文章标题的最后一个字后加上</h1>
       在生成的每个段落的第一个字最前加上<p>,在每个段落的最后一个字的后面加上</p>`;
@@ -28,7 +29,7 @@ const articleModel = {
       生成的字数:${max_token}
       文章类型:“${articleType}”，
       语言风格:“${languageStyle}”，
-      生成的内容:"${contentTemplate}"。。
+      生成的内容:"${contentTemplate}",
     `;
 
     const messages = [
@@ -138,7 +139,7 @@ const articleModel = {
         data: articles.map((article) => ({
           ...article,
           created_at: article.created_at.toISOString(), // 转换为ISO格式 .toISOString()
-          updated_at: article.updated_at.toISOString(), 
+          updated_at: article.updated_at.toISOString(),
         })),
         pagination: {
           page: Number(page),

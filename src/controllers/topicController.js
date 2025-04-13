@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-03-13 19:30:13
+ * @LastEditTime: 2025-04-12 16:37:34
  * @FilePath: \AI_node\src\controllers\topicController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -12,6 +12,7 @@ import ContentTemplateModel from "../models/contentTemplateModel.js";
 const topicController = {
   // 获取热搜数据 已完成
   async getHotMessages(req, res) {
+    console.log("获取热搜数据请求");
     try {
       const data = await topicModel.getHotMessages();
       res.json({
@@ -63,7 +64,7 @@ const topicController = {
       }
       console.timeEnd("时间");
       // 返回生成的话题
-      res.json({ jsonObject });
+      res.json({ data: jsonObject });
     } catch (error) {
       console.error("生成话题时出错:", error);
       res.status(500).json({ error: "生成话题时出错" });
@@ -90,6 +91,7 @@ const topicController = {
 
   // 用户收藏某个话题   需要用户收藏的同时将话题存储在话题表中 已完成
   async collectTopic(req, res) {
+    console.log(req, "请求参数");
     const userId = parseInt(req.params.userId);
     let { topicId, title, content_template, style, type } = req.body;
     if (!userId || !title || !content_template || !style || !type) {
@@ -147,12 +149,12 @@ const topicController = {
 
   // 用户取消收藏话题 已完成
   async cancelCollectTopic(req, res) {
-    const userId = parseInt(req.params.userId);
-    const { topicId } = req.body;
+    const { userId, topicId } = req.params;
     if (!userId || !topicId) {
-      return res.status(400).json({ error: "缺少必要的参数" });
+      return res.status(400).json({ message: "缺少必要参数" });
     }
     try {
+      console.log(userId, topicId, "取消收藏话题请求");
       const data = await topicModel.cancelCollectTopic(userId, topicId);
       if (!data) {
         return res.status(404).json({
@@ -184,7 +186,7 @@ const topicController = {
 
     try {
       const userCollectTopic = await topicModel.getUserCollectTopic(userId);
-
+      console.log("成功获取话题数据");
       res.status(200).json({
         success: true,
         userCollectTopic,
