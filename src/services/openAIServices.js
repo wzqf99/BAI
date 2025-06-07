@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-06 11:20:40
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-03-30 19:18:59
+ * @LastEditTime: 2025-05-10 23:22:15
  * @FilePath: \AI_node\src\services\openAIServices.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -13,20 +13,11 @@ dotenv.config();
 
 class OpenAIService {
   constructor() {
-    // 这里使用了环境变量 DASHSCOPE_API_KEY 以及指定 baseURL
     this.openai = new OpenAI({
       apiKey: process.env.DASHSCOPE_API_KEY,
       baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     });
   }
-
-  /**
-   * 获取流式返回的大模型响应
-   * @param {Array} messages - 聊天消息数组
-   * @param {string} model - 模型名称, 如 "qwen-turbo"
-   * @param {number} maxTokens - 返回的最大 token 数
-   * @returns {AsyncGenerator} - 可异步迭代获取 chunk
-   */
 
   async getChatCompletion(messages, model = "deepseek-v3") {
     return this.openai.chat.completions.create({
@@ -62,7 +53,7 @@ class OpenAIService {
     const messages = [
       {
         role: "system",
-        content: `你是一个专业编辑，请扩展以下内容至原来的1.5倍左右，同时保证此次生成的内容是完整的，增加细节描述使内容更丰富。保持原意但优化表达。风格要求：${style}。`,
+        content: `你是一个专业编辑，请扩展以下内容至原来的1.5到2倍左右，同时保证此次生成的内容是完整的，增加细节描述使内容更丰富。保持原意但优化表达。风格要求：${style}。`,
       },
       {
         role: "user",
@@ -106,16 +97,11 @@ class OpenAIService {
   //  生成话题   qwen-max-0919 qwen-plus
   async generateTopic(context, model = "qwen-max-0919") {
     const prompt = `
-根据以下信息生成话题：
-
+根据以下信息生成话题(生成的话题是用于生成文章的prompt,一般是以用户的口吻来给予ai提示，要写什么，怎么写)：
 标题: {title}
-
 描述: {desc} （如果有）
-
 输入: {input} （如果有）
-
 根据上述信息，生成1个包含以下内容的 JSON 对象：
-
 1. \`title\`: 生成的标题
 2. \`contentmplate\`: 
    - \`id\`: -1

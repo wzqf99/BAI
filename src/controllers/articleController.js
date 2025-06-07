@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-03-02 10:11:29
+ * @LastEditTime: 2025-05-10 23:33:54
  * @FilePath: \AI_node\src\controllers\articleController.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14,12 +14,8 @@ const articleController = {
   // 生成文章草稿 get 已完成 参数为文章类型，语言风格，内容模版，文字字数
   async generateDraft(req, res) {
     try {
-      // 用 GET /generateArticleDraft?articleType=xx&languageStyle=xx...
-      // 从 req.query 中取参数
       const { articleType, languageStyle, contentTemplate } = req.query;
-      // 将max_token转为数字
       const max_token = parseInt(req.query.max_token);
-      // 参数校验
       if (!articleType || !languageStyle || !contentTemplate) {
         return res.status(400).json({
           error: "缺少必要参数: articleType, languageStyle, contentTemplate",
@@ -27,27 +23,19 @@ const articleController = {
       }
       console.log("接收到了生成草稿请求");
       console.log("本次参数", articleType, languageStyle, max_token);
-      // 调用模型生成结果(流式)
       const articleStream = await articleModel.generateDraft({
         articleType,
         languageStyle,
         contentTemplate,
         max_token,
       });
-
-      // 设置SSE头
       res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
-
-      // 逐段读取流，发送给前端
       for await (const chunk of articleStream) {
         const textChunk = chunk.choices?.[0]?.delta?.content ?? "";
-        // SSE格式: data: <内容>\n\n
         res.write(`data: ${textChunk}\n\n`);
       }
-
-      // 发送结束标志
       res.write("data: \n\n");
       res.end();
     } catch (error) {
@@ -287,6 +275,7 @@ const articleController = {
 
   // 删除文章 delete 已完成 参数为文章id
   async deleteArticle(req, res) {
+    console.log("接收到了删除文章的请求", req.params);
     const { id } = req.params;
     if (!id) {
       return res.status(400).json({ error: "缺少必要参数: articleId" });

@@ -2,7 +2,7 @@
  * @Author: yelan wzqf99@foxmail.com
  * @Date: 2025-02-07 14:13:46
  * @LastEditors: yelan wzqf99@foxmail.com
- * @LastEditTime: 2025-04-12 11:07:52
+ * @LastEditTime: 2025-05-14 14:59:02
  * @FilePath: \AI_node\src\models\topicModel.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -19,12 +19,9 @@ const topicModel = {
         const response = await axios.get(
           `https://api.cenguigui.cn/api/juhe/hotlist.php?type=${type}`
         );
-
-        // 判断返回的数据格式
         if (!response.data || !Array.isArray(response.data.data)) {
           throw new Error(`${type} 的返回数据格式不正确`);
         }
-
         return {
           [type]: response.data.data.map((item) => ({
             index: item.index,
@@ -80,7 +77,8 @@ const topicModel = {
 
   // 检查是否收藏过了
   async checkIfAlreadyCollected(topicId, userId) {
-    const sql = "SELECT * FROM user_favorites WHERE user_id = ? AND topic_id = ? LIMIT 1";
+    const sql =
+      "SELECT * FROM user_favorites WHERE user_id = ? AND topic_id = ? LIMIT 1";
     const [rows] = await pool.query(sql, [userId, topicId]);
     return rows.length > 0;
   },
@@ -144,8 +142,6 @@ const topicModel = {
       throw new Error("获取用户收藏列表失败");
     }
   },
-
-  
 };
 
 export default topicModel;

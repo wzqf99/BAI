@@ -135,6 +135,77 @@ const userController = {
       return res.status(500).json({ error: "服务器错误" });
     }
   },
+
+  // 新增方法 - 获取文章统计
+  async getArticleStats(req, res) {
+    try {
+      // 实际项目中应从会话/令牌获取用户ID
+      const userId = req.userId || req.query.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: "未授权访问" });
+      }
+
+      console.log(req.query, "文章同级请求");
+      const stats = await userModel.getArticleStats(userId);
+      return res.json(stats);
+    } catch (error) {
+      console.error("获取文章统计错误:", error);
+      return res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
+  // 获取写作习惯统计
+  async getWritingHabits(req, res) {
+    try {
+      const userId = req.userId || req.query.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: "未授权访问" });
+      }
+      console.log(req.query, "写作习惯请求");
+      const habitStats = await userModel.getWritingHabits(userId);
+      return res.json(habitStats);
+    } catch (error) {
+      console.error("获取写作习惯统计错误:", error);
+      return res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
+  // 获取收藏统计
+  async getFavoriteStats(req, res) {
+    try {
+      const userId = req.userId || req.query.userId;
+      console.log(req.query, "收藏请求");
+      if (!userId) {
+        return res.status(401).json({ error: "未授权访问" });
+      }
+
+      const favoriteStats = await userModel.getFavoriteStats(userId);
+      return res.json(favoriteStats);
+    } catch (error) {
+      console.error("获取收藏统计错误:", error);
+      return res.status(500).json({ error: "服务器错误" });
+    }
+  },
+
+  // 获取内容使用统计
+  async getContentUsageStats(req, res) {
+    try {
+      const userId = req.userId || req.query.userId;
+      console.log(req.query, "内容使用请求");
+
+      if (!userId) {
+        return res.status(401).json({ error: "未授权访问" });
+      }
+
+      const usageStats = await userModel.getContentUsageStats(userId);
+      return res.json(usageStats);
+    } catch (error) {
+      console.error("获取内容使用统计错误:", error);
+      return res.status(500).json({ error: "服务器错误" });
+    }
+  },
 };
 
 export default userController;
